@@ -1,4 +1,20 @@
 # Golang基础总结
+## 1. make 和 new 的区别
+    make和new的定义：
+    ```golang
+    func make(t Type,size ...IntegerType) Type
+    
+    func new(Type) *Type
+    ```
+    区别：
+    - 返回值类型不同，make返回类型值，new返回类型的指针
+    - 参数不同，make只能用于slice,map,chanel的初始化，new可以用于任意类型
+    - make是分配内存并初始化，new是只分配内存并返回类型的零值指针
+
+## 2. 类型断言使用条件
+![示例代码](./imgs/go-interface-type.png)
+    类型断言只能作用于interface类型的变量，其他类型使用断言会报语法错误。
+    
 
 
 ## 进阶
