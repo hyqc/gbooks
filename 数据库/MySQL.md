@@ -233,5 +233,5 @@ Buffer Pool会缓存：数据页、索引页、undo页、自适应hash索引、�
 
 ### redo log
 
-#### 为什么需要redo log？
+#### 为什么需要redo log？（物理日志）
 上面介绍到了为了降低IO及提高查询效率和性能，MySQL提供了Buffer Pool功能。但是由于Buffer Pool的数据是存储在内存中的，一旦停电或MySQL崩溃，内存中的脏页数据将会丢失。为了防止断电数据丢失，新增加了redo log日志来记录需要刷盘的数据，从而保证即使断电恢复，仍然可以从redo log（记录某个数据页的修改）冲恢复修改的数据。
