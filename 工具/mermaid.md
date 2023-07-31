@@ -423,11 +423,23 @@ flowchart
 graph LR
     A-->B
 ```
+```markdown
+    ```mermaid
+    graph LR
+        A-->B
+    ```
+```
 
 ### 连实线
 ```mermaid
 graph LR
     A---B
+```
+```markdown
+    ```mermaid
+    graph LR
+        A---B
+    ```
 ```
 
 ### 文本连线
@@ -440,7 +452,17 @@ graph LR
     E-->|是| F
     E--是 --->F
 ```
+```markdown
+    ```mermaid
+    graph LR
+        A-- "是" --- B
 
+        C--- |"是"| D
+
+        E-->|是| F
+        E--是 --->F
+    ```
+```
 ### 虚线
 ```mermaid
 graph LR
@@ -449,6 +471,14 @@ graph LR
     A-. "是".->B
 ```
 
+```markdown
+    ```mermaid
+    graph LR
+        A-.-B
+        A-.->B
+        A-. "是".->B
+    ```
+```
 ### 粗箭头
 ```mermaid
 graph LR
@@ -456,6 +486,13 @@ graph LR
     A== 是 ==>B
 ```
 
+```markdown
+    ```mermaid
+    graph LR
+        A==>B
+        A== 是 ==>B
+    ```
+```
 ## 子图
 ```mermaid
 graph TB
@@ -472,6 +509,22 @@ graph TB
     C2-->B2
 ```
 
+```markdown
+    ```mermaid
+    graph TB
+        subgraph one
+        A1-->A2
+        end
+        subgraph two
+        B1-->B2
+        end
+        subgraph three
+        C1-->C2
+        end
+        A1-->B2
+        C2-->B2
+    ```
+```
 
 
 
@@ -486,4 +539,13 @@ A-->B;
 A-->C;
 B-->D;
 B-->E;
+```
+```markdown
+    ```mermaid
+    graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    B-->E
+    ```
 ```
