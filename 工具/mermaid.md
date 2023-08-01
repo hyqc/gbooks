@@ -531,14 +531,35 @@ graph TB
 
 # 流程图
 > 关键字 flowchart，可以使用graph替换
+## 示例1
+```mermaid
+    flowchart TD
+        A-->B["过程"]
+        A-->C{"条件"}
+        B-->D[["子过程"]]
+        D-->E[/"结果"/]--"是"-->F("结束")
+        C--"是"-->D
+        C--"否"-->E
+```
+```markdown
+    ```mermaid
+        flowchart TD
+            A-->B["过程"]
+            A-->C{"条件"}
+            B-->D[["子过程"]]
+            D-->E[/"结果"/]--"是"-->F("结束")
+            C--"是"-->D
+    ```
+```
 
-### 二叉树
+## 示例2
 ```mermaid
 graph TD;
 A-->B;
 A-->C;
 B-->D;
 B-->E;
+E--xF;
 ```
 ```markdown
     ```mermaid
@@ -547,5 +568,102 @@ B-->E;
     A-->C;
     B-->D;
     B-->E
+    E-->>F
     ```
+```
+# 表格
+| 左对齐 | 右对齐 | 居中对齐 |
+| :-----| ----: | :----: |
+| 单元格 | 单元格 | 单元格 |
+| 单元格 | 单元格 | 单元格 |
+
+```markdown
+| 左对齐 | 右对齐 | 居中对齐 |
+| :-----| ----: | :----: |
+| 单元格 | 单元格 | 单元格 |
+| 单元格 | 单元格 | 单元格 |
+```
+
+# 时序图
+- 关键字： sequenceDiagram
+- 格式：主体1 关系线 主体2: 消息 
+- 关系线类型：
+
+|类型|描述|
+|:---|:---|
+|->| 无箭头实线：Solid line without arrow |
+|-->|无箭头虚线：Dotted line without arrow |
+|->>|有箭头实线：Solid line with arrowhead |
+|-->>|有箭头虚线： Dotted line with arrowhead |
+|-x|以x结尾的实线：Solid line with a cross at the end|
+|--x| 以x结尾的虚线：Dotted line with a cross at the end |
+|-)| 末尾是开箭头异步实线：Solid line with an open arrow at the end(async)|
+|--)|末尾是开箭头异步虚线：Dotted line with a open arrow at the end(async)|
+
+## 示例1
+```mermaid
+    sequenceDiagram
+    C--x D: ddd
+    Alice->>John: Hello John, how are you?
+    John-->>Alice: Great!
+    Alice-)John: See you later!
+```
+```markdown
+    ```mermaid
+        sequenceDiagram
+        Alice->>John: Hello John, how are you?
+        John-->>Alice: Great!
+    ```
+```
+
+## 示例2
+```mermaid
+    sequenceDiagram
+        客户端->>缓存: 查缓存
+        缓存-->>数据库: 查数据库
+        数据库->>客户端: 返回结果
+        Note right of 数据库: 你好
+        
+```
+
+```markdown
+    ```mermaid
+        sequenceDiagram
+            客户端->>缓存: 查缓存
+            缓存-->>数据库: 查数据库
+            数据库->>客户端: 返回结果
+            Note right of 数据库: 你好
+            
+    ```
+
+```
+
+
+## 示例3
+```mermaid
+    sequenceDiagram
+        A->B: 无箭头实线
+        B->>C: 有箭头实线
+        C-->D: 无箭头虚线
+        B-->>D: 有箭头虚线
+        D-xB: x结尾实线
+        C--xB: x结尾虚线
+        B-)A: 末尾是异步开箭头实现
+        D--)A: 末尾是异步开箭头虚线
+```
+
+```markdown
+    ```mermaid
+        sequenceDiagram
+            A->B: 无箭头实线
+            B->>C: 有箭头实线
+            C-->D: 无箭头虚线
+            B-->>D: 有箭头虚线
+            D-xB: x结尾实线
+            C--xB: x结尾虚线
+            B-)A: 末尾是异步开箭头实现
+            D--)A: 末尾是异步开箭头虚线
+            
+    ```
+
 ```
