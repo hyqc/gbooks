@@ -20,6 +20,90 @@ memcached 是一个内存数据库，仅支持key-value类型，不支持数据�
 - 高性能：内存读写，性能高
 - 高并发：性能高带来了高QPS，自然相对Mysql来说并发支持更高
 
+## Redis数据结构
+### SDS简单动态字符串
+结构：
+```
+struct {
+    len int // 字符串长度
+    free int // 可用空间大小
+    data []byte // 字节数组，二进制安全
+}
+
+```
+
+### Hash
+使用链表(链地址发)解决哈希冲突，相同的hash索引加入链表的头部，节点指针指向上一个节点
+
+#### Hash结构
+```c
+typedef struct dictht {
+
+    // 哈希表数组
+    dictEntry **table;
+
+    // 哈希表大小
+    unsigned long size;
+
+    // 哈希表大小掩码，用于计算索引值
+    // 总是等于 size - 1
+    unsigned long sizemask;
+
+    // 该哈希表已有节点的数量
+    unsigned long used;
+
+} dictht;
+
+typedef struct dictEntry {
+
+    // 键
+    void *key;
+
+    // 值
+    union {
+        void *val;
+        uint64_t u64;
+        int64_t s64;
+    } v;
+
+    // 指向下个哈希表节点，形成链表
+    struct dictEntry *next;
+
+} dictEntry;
+
+typedef struct dict {
+
+    // 类型特定函数
+    dictType *type;
+
+    // 私有数据
+    void *privdata;
+
+    // 哈希表
+    dictht ht[2];
+
+    // rehash 索引
+    // 当 rehash 不在进行时，值为 -1
+    int rehashidx; /* rehashing not in progress if rehashidx == -1 */
+
+} dict;
+```
+#### Hash冲突
+不同的键，计算哈希值后得到相同的索引，此时该索引上已经存在其他的键，那么就出现了哈希冲突。redis的Hash是通过在索引后面加上一个单向链表解决的
+
+#### rehash重新散列（渐进式rehash）
+rehash：重新散列hash表，是为了将哈希的负载因子维持在一个合理的位置而做的处理。触发条件时hash表键太多或太少，此时需要对哈希表的大小做扩展或收缩。
+流程：
+- 计算新hash需要的大小
+- 计算键的新hash索引并迁移到h1哈希表上，多次分配迁移
+- 迁移完成后，将h0空间释放，并将h1设置为h0，重新生成空的h1为下一次扩缩准备。  
+
+### 跳跃表skiplist（只有有序集合zset）
+在一个节点中维持多个指向不同节点的指针，从而达到快速访问节点的目的。
+
+### 整数集合intset
+当一个集合元素不多，且都是整数时，redis机会使用整数集合作为集合的底层实现
+
 ## Redis数据类型
 
 
