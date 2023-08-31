@@ -122,3 +122,21 @@ graph LR
 ### kafka是怎么提高查询效率的？
 segment分段+有序offset+稀疏索引+二分查找+顺序查找
 kafka的partition分区中文件存储的格式是分成多个段（segment），每个段有多个文件组成：(.index，.timeindex，.log组成)，kafka的分区中的数据是有序的，每条消息都有一个唯一的offset ID，而每段segment的文件命名是按照offset命名的，因此每个partition的文件都是有序可快速查找的，其中.index和.timeindex都是稀疏索引，可以利用二分查找加快查找效率。
+
+### kafka自身参数有哪些？
+- broker参数：
+  - broker处理消息的最大线程数：num.network.threads=cpu核心数+1
+  - broker处理磁盘IO的线程数：num.io.threads = cpu核心数*2
+- log数据刷盘策略：
+  - producer写入多少条数据时触发写入磁盘：log.flush.interval.messages = 10000
+  - 每间隔多久刷新数据到磁盘：log.flush.interval.ms=1000
+- 日志保留策略
+  - log日志存储多久后删除：log.retention.hours=72
+- replica副本配置：
+  - 创建topic时默认的replica数量：offsets.topic.replication.factor=3
+
+
+### AR、ISR、OSR
+AR：assign replicas，包括leader在内的所有副本集合
+ISR：In-sync replicas，是指与leader副本保持一致的副本follower集合。只有处于ISR中的副本才被认为是可靠的，数据与leader保持一致的，其他副本被认为是不可靠的。当follower副本无法及时跟上leader副本的同步进度时，该副本将被移除ISR，知道该副本可以追赶上leader并于leader保持一致，它将被重新加入ISR中。ISR保证一致性和可靠性
+OSR：Out-sync replicas，与ISR相反，存储的是与leader不一致的副本

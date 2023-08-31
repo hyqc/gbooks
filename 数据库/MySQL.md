@@ -279,3 +279,8 @@ flowchart TD
 
 
 ### MySQL支持哪些锁？分别介绍下
+
+### MySQL查看事务的SQL语句？
+```sql
+SELECT * FROM information_schema.INNODB_TRX
+```

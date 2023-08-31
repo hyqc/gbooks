@@ -83,3 +83,32 @@ go tool pprof -http=:8889 profile
 
 ### 命令行查看
 go tool pprof profile
+
+-------------
+
+# 面试题
+## 连个协程中用channel通信，结束后需要close channel吗？
+不需要，问题考察的是channel的发送和接收，发送：
+```golang
+ch<-xxx
+
+或
+for i:=0; i<10; i++ {
+  ch <- i
+}
+```
+接收：
+- 第一种：事先已经知道channel的发送次数或者容量
+```golang
+for i:=0; i<10; i++ {
+  v := <-ch
+}
+```
+这种方式发送方是不需要主动关闭 close channel的
+- 第二中：使用 for range 接收channel
+```golang
+for v := range ch {
+  xxx
+}
+```
+这种方式接收时，如果发送方不明确关闭channel，那么接收方会一直阻塞
