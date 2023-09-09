@@ -54,3 +54,149 @@ Read View的四个字段：
 - trx_id：事务ID
 - roll_pointer：旧版本在undo.log中的记录指针，版本记录指的是undo.log中的数据
 通过判断当前事务和min、max事务ID的大小，得出当前记录对该事务的可见性，这个就是MVCC多版本并发控制。
+
+
+## MySQL如何查看索引信息？如何做索引优化？
+- 查看索引信息：
+使用show index from 表名 from 数据库名，查看表中的索引情况。
+```sql
+show index from tablename from dbname;
+```
+- 索引优化：
+1. 适合索引的列是出现在where子句中的列，或者连接子句中指定的列。
+2. 基数较小的列，索引效果较差，没有必要为此列创建索引
+3. 使用短索引，如果对长字符串列进行索引，应该指定一个前缀长度，这样可以节省大量索引空间
+4. 不要过度索引。索引需要额外的磁盘空间，并降低写操作的性能。在修改表内容的时候，索引会进行更新甚至重构，索引列越多，这个时间越长。所以只保持需要的索引有利于查询即可。
+基数：单个列唯一键的数量叫做基数。
+
+## 如何查看MySQL的内存使用情况？
+查询系统的performance_schema库中memory相关的表
+
+## 数据库表如何分库分表
+- 垂直分表：按照业务，将业务关系紧密的放在一张表中（读业务大）
+- 水平分表：按照一些字段进行hash或按段分表（数据量大时水平分表）
+
+## MySQL索引优化的方法？
+- 字段使用合适的数据类型（避免空间浪费）
+- 避免使用select * from查询所有列（需要查询主键索引，可能需要回表）
+- where条件中建立合适的索引，是查询尽量使用到索引，尽量做到使用覆盖索引
+- 使用explain或者show index from table分析SQL和分析索引情况
+- 定期优化数据库表：optimize table
+
+## 索引使用情况
+### 联合索引（a,b,c）
+- abc
+```sql
+EXPLAIN select * from table where a = 1 and b = 2 and c = 3;
+```
+使用索引情况：使用了联合索引，ref：const,const,const
+![联合索引：a = 1 and b = 2 and c = 3](./imgs/mysql-联合索引-abc.png)
+使用了联合索引，const,const,const
+- ab
+```sql
+EXPLAIN select * from table where a = 1 and b = 2;
+```
+![联合索引：a = 1 and b = 2](./imgs/mysql-联合索引-ab.png)
+使用了联合索引，const,const
+- a
+```sql
+EXPLAIN select * from table where a = 1;
+```
+![联合索引：a = 1](./imgs/mysql-联合索引-a.png)
+使用了联合索引，const
+- ac
+```sql
+EXPLAIN select * from table where a = 1 and c = 3;
+```
+![联合索引：a = 1 and c = 3](./imgs/mysql-联合索引-ac.png)
+使用了联合索引，且用到了索引下推（using index condition）
+
+- bc
+```sql
+EXPLAIN select * from table where b = 2 and c = 3;
+```
+![联合索引：b = 2 and c = 3](./imgs/mysql-联合索引-bc.png)
+索引失效
+
+
+- c
+```sql
+EXPLAIN select * from table where c = 3;
+```
+![联合索引：c = 3](./imgs/mysql-联合索引-c.png)
+索引失效
+
+- null：最优，不需要额外处理
+- using index：使用索引覆盖，不会回表
+- using where：使用索引，但是需要回表查询
+- using index condition：使用了索引，但是使用了索引下推
+- using where;using index：使用了索引，且列都在索引中
+- using MMR：使用顺序磁盘读取策略
+
+## mysql or索引会失效吗？
+不一定。如果or条件的前后字段都是索引字段（如果后一个时联合索引字段那么必须满足最左匹配原则），则会使用索引，且会使用索引下推。需要根据第一个条件字段是否是索引字段决定是否会使用索引。
+
+## count(*)和count(1)有区别吗？为什么？
+没有区别，count是统计不为null的数量，count(*) = count(0) = count(1)，而0和1都不为NULL。mysql会将count(*)的*转换为0统计。
+count(*) = count(1) > count(id) > count(其他字段)。
+count(id)会走主键索引，统计id!=NULL的数量，需要遍历索引。count(其他字段)如果未建立索引，需要全表扫描（是否使用索引）。
+
+# mysql field like '%keyword%'索引会失效吗？
+不一定。
+- 查询的字段全部在索引中时，会使用索引![包含无索引列](./imgs/mysql-联合索引-no-index.png)
+- 查询的字段中包括没有创建的索引列时，索引会失效![只有索引列](./imgs/mysql-联合索引-index.png)
+
+# MySQL如何避免全文扫描？
+EXPLAIN执行SQL后Type=All，通常在以下情况下发生：
+- 表中的数据行很少，通常少于10行（此时全表扫描更快）
+- SQL语句缺少WHERE或ON条件
+- 正在使用索引和常量值比较，并且mysql计算出的基于索引数的常量覆盖了表的很大一部分，且表扫描会更快
+- 正在通过另一列使用基数很低的键，这种情况下，mysql会假定使用这个键可能会需要很多的键查找，且全表扫描更快
+使用以下方式可以避免全表扫描：
+- 使用 ANALYZE TABLE table_name 更新扫描表的键分布
+- 使用 FORCE INDEX (index_column) 来强制使用索引：select * from t1,t2 FORCE INDEX (index_column) WHERE t1.col_name = t2.col_name
+- SET max_seeks_for_key=1000告诉优化器键扫描不超过1000
+
+# MySQL索引失效的情况？
+对查询的字段中包含不在索引中的字段时，以下场景会触发索引失效：
+- 联合索引失效：查询的列无法优化构成最左前缀，则无法使用联合索引。
+- 单列索引失效：
+  - 对索引字段计算：where id + 1 = 10，因为索引存储的是字段的原始值。
+  - 对索引字段使用函数：where length(id) = 10，因为索引存储的是字段的原始值。
+  - 使用 where field like '%xx%'，'%x'
+  - 索引字段进行了隐式转换，如 name = '10'使用了索引，但是name = 10就无法使用索引了。
+  - 使用 where field1 = 1 or field2 = 2
+  - 使用or前的列是索引列，or后的列不是索引列
+
+
+# MySQL如何优化sql？
+- 定位慢查询的SQL：通过慢查询日志或相关工具，执行SQL查看慢查询日志是否开启：
+```sql
+show variables like 'slow_query_log';
+- 临时修改，mysql重启后失效，要永久有效需要更改mysql配置，在mysqld的配置中增加slow_query_log=ON;
+set global slow_query_log=on;
+```
+- 对慢查询SQL执行EXPLAIN，查看使用索引情况。
+对需要增加索引的增加按照索引创建的原则创建或修改。
+
+# 建立索引的原则？
+1. 避免索引失效（未使用）
+2. 避免索引过多（重复）
+3. 避免索引臃肿（索引字段长，尽量使用前缀索引）
+
+- 对查询多的字段创建合适的索引，如单列索引，联合索引；但是在创建联合索引时需要保证查找的最左匹配原则（联合索引的第一个列字段，一定要出现在查询条件中）
+- 少于10行数据的表不需要建立索引（全表扫描更快）
+- 建立的索引字段不能参与函数计算和类型的隐式转换（会失效）
+- 尽量扩展索引，避免新建索引。（索引多了会影响写入、删除、修改操作）
+- 不要对区分度低的字段建立索引
+
+# MySQL如何优化索引？
+
+
+## MySQL如何优化 like "%keyword%"？
+
+
+- or失效
+- SQL优化
+- redis分配集群
+- redis主从分布
