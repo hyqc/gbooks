@@ -171,7 +171,7 @@ golang中指针不支持运算，不过可以使用unsafe.Pointer和uintptr转�
 - 如果只有一个case，那么会一直执行这个case，并进入死循环中
 
 ## 从一个nil channel中读取数据会发生什么？
-会阻塞并触发deadlock。当协程发生阻塞，但是无法接触阻塞状态时就会触发死锁![channel阻塞情况](./golang_channel.webp)
+会阻塞并触发deadlock。当协程发生阻塞，但是无法接触阻塞状态时就会触发死锁![channel阻塞情况](./imgs/golang_channel.webp)
 - 向nil通道发送，阻塞
 - 从nil通道接收，阻塞
 - 向无缓存通道发送，阻塞
